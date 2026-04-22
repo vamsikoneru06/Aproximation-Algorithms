@@ -262,6 +262,38 @@ body.light .knapsack-visual{background:#f1f5f9;}
 }
 .opt-na-notice span{font-size:2rem;}
 
+/* VC CALCULATION BREAKDOWN CARD */
+.vc-calc-two{
+  display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;align-items:start;
+}
+@media(max-width:860px){.vc-calc-two{grid-template-columns:1fr;}}
+.vc-calc-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.vc-calc-table th{
+  text-align:left;padding:.38rem .55rem;color:var(--muted);
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1px solid var(--border);
+}
+.vc-calc-table td{padding:.38rem .55rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.vc-calc-table tr.vc-approx-row td{color:var(--accent2);}
+.vc-calc-table tr.vc-approx-row td:first-child{font-weight:700;}
+.vc-calc-table tr.vc-match-row td{color:var(--accent3);}
+.vc-calc-table tr.vc-match-row td:first-child{font-weight:700;}
+.vc-calc-seq{
+  margin-top:.9rem;padding:.65rem .9rem;border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;
+  word-break:break-all;
+}
+.vc-calc-seq.purple{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);color:var(--accent2);}
+.vc-calc-seq.green{background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.2);color:var(--accent3);}
+.vc-calc-seq .seq-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin-bottom:.3rem;font-family:'Outfit',sans-serif;}
+.vc-ratio-formula{
+  margin-top:1rem;padding:.65rem .9rem;border-radius:8px;
+  background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.15);
+  font-size:.82rem;line-height:1.6;
+}
+.vc-ratio-formula .formula-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin-bottom:.35rem;font-family:'Outfit',sans-serif;}
+.vc-ratio-formula code{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.06);padding:.12rem .4rem;border-radius:4px;font-size:.8rem;}
+
 /* DP TABLE */
 .dp-table-wrap{overflow-x:auto;overflow-y:auto;max-height:420px;border-radius:8px;}
 .dp-table{
@@ -666,6 +698,19 @@ body.light .dp-table td:first-child{background:rgba(0,0,0,.06);}
     <div class="ratio-bar"><div class="ratio-fill" id="vc-ratio-bar" style="background:var(--accent2);width:0%"></div></div>
     <div style="font-size:.73rem;color:var(--muted);margin-top:.4rem">2-approximation is best-known poly-time algorithm for Vertex Cover (assuming P≠NP).</div>
     <div id="vc-cover-list" style="margin-top:.8rem;font-size:.84rem;"></div>
+  </div>
+
+  <!-- VC CALCULATION BREAKDOWN CARD -->
+  <div class="card" id="vc-calc-card" style="margin-top:1.2rem;display:none;">
+    <div class="card-header">
+      <div class="dot" style="background:var(--accent2)"></div>Calculation Breakdown
+      <span id="vc-calc-header-note" style="margin-left:auto;font-size:.68rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0"></span>
+    </div>
+    <div class="card-body" style="padding:1rem;">
+      <div id="vc-calc-body">
+        <!-- populated by JS -->
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1591,9 +1636,103 @@ function vcRenderStep(idx){
     document.getElementById('vc-cover-list').innerHTML=`Cover vertices: <b style="color:var(--accent2)">{${[...s.cover].map(i=>VC_NODES[i].name).join(', ')}}</b>`;
     document.getElementById('vc-result').classList.remove('hidden');
     setTimeout(()=>{document.getElementById('vc-ratio-bar').style.width=pct(lb,approx)+'%';},120);
+    buildVCCalcCard(s, approx, lb);
   } else {
     document.getElementById('vc-result').classList.add('hidden');
+    document.getElementById('vc-calc-card').style.display='none';
   }
+}
+
+// ── VC Calculation Breakdown card ─────────────────────────────
+function vcMaxMatchingDetails(){
+  // Returns array of matching edges {u,v} forming a greedy maximal matching
+  const matched=new Set(); const matchEdges=[];
+  for(const[u,v] of VC_EDGES){
+    if(!matched.has(u)&&!matched.has(v)){
+      matched.add(u); matched.add(v);
+      matchEdges.push({u,v});
+    }
+  }
+  return matchEdges;
+}
+
+function buildVCCalcCard(finalStep, approx, lb){
+  const card=document.getElementById('vc-calc-card');
+  const body=document.getElementById('vc-calc-body');
+  const note=document.getElementById('vc-calc-header-note');
+  note.textContent=`Cover = ${approx}  |  LB = ${lb}  |  Ratio ≤ ${lb>0?(approx/lb).toFixed(2):'—'}×`;
+
+  // Collect approx cover edge-picks from steps
+  const approxSteps=vcState.steps.filter(s=>s.selectedEdge!==null);
+  const matchEdges=vcMaxMatchingDetails();
+
+  // Approx cover table rows
+  let coverVerticesRunning=[];
+  const approxRows=approxSteps.map((s,i)=>{
+    const u=s.selectedEdge[0], v=s.selectedEdge[1];
+    coverVerticesRunning.push(VC_NODES[u].name, VC_NODES[v].name);
+    const uniq=[...new Set(coverVerticesRunning)];
+    return `<tr class="vc-approx-row">
+      <td>${i+1}</td>
+      <td><b>(${VC_NODES[u].name}–${VC_NODES[v].name})</b></td>
+      <td>+ ${VC_NODES[u].name}, ${VC_NODES[v].name}</td>
+      <td style="font-family:'JetBrains Mono',monospace">{${uniq.join(',')}}</td>
+    </tr>`;
+  }).join('');
+
+  // Max matching table rows
+  let mmVertices=[];
+  const matchRows=matchEdges.map((e,i)=>{
+    mmVertices.push(VC_NODES[e.u].name, VC_NODES[e.v].name);
+    return `<tr class="vc-match-row">
+      <td>${i+1}</td>
+      <td><b>(${VC_NODES[e.u].name}–${VC_NODES[e.v].name})</b></td>
+      <td>${VC_NODES[e.u].name} ✓&nbsp; ${VC_NODES[e.v].name} ✓</td>
+    </tr>`;
+  }).join('');
+
+  const coverList=[...new Set([...finalStep.cover].map(i=>VC_NODES[i].name))];
+
+  body.innerHTML=`<div class="vc-calc-two">
+    <!-- LEFT: Approx Cover Calculation -->
+    <div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700">2-Approx Cover — Step-by-Step</div>
+      <table class="vc-calc-table">
+        <thead><tr><th>#</th><th>Edge picked</th><th>Vertices added</th><th>Cover so far</th></tr></thead>
+        <tbody>${approxRows}</tbody>
+      </table>
+      <div class="vc-calc-seq purple">
+        <div class="seq-lbl">Final Cover Set (size = ${approx})</div>
+        C = { ${coverList.join(' , ')} }
+      </div>
+      <div style="font-size:.73rem;color:var(--muted);margin-top:.55rem;line-height:1.5">
+        Each selected edge contributes <b style="color:var(--accent2)">exactly 2</b> vertices →
+        |C| = <b style="color:var(--accent2)">${approxSteps.length} × 2 = ${approx}</b>
+      </div>
+    </div>
+    <!-- RIGHT: Max Matching LB -->
+    <div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Max Matching — Lower Bound</div>
+      <table class="vc-calc-table">
+        <thead><tr><th>#</th><th>Edge matched</th><th>Endpoints blocked</th></tr></thead>
+        <tbody>${matchRows}</tbody>
+      </table>
+      <div class="vc-calc-seq green">
+        <div class="seq-lbl">Matching (size = ${lb} edges)</div>
+        M = { ${matchEdges.map(e=>`(${VC_NODES[e.u].name}–${VC_NODES[e.v].name})`).join(' , ')} }
+      </div>
+      <div class="vc-ratio-formula">
+        <div class="formula-lbl">Why |M| ≤ OPT ≤ |C| ≤ 2·|M|</div>
+        Any vertex cover must include ≥ 1 endpoint per matching edge, so<br>
+        <code>OPT ≥ |M| = ${lb}</code>&nbsp;(lower bound).<br>
+        The 2-approx adds both endpoints per selected edge, so<br>
+        <code>|C| = ${approx} ≤ 2 · |M| = ${2*lb}</code>&nbsp;→&nbsp;
+        <b style="color:var(--accent1)">ratio = ${lb>0?(approx/lb).toFixed(2):'—'}×</b>
+      </div>
+    </div>
+  </div>`;
+
+  card.style.display='';
 }
 
 function vcNext(){ if(vcState.cur<vcState.steps.length-1){vcState.cur++;vcRenderStep(vcState.cur);} }
