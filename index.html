@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Approximation Algorithms — Visual Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#0a0f1e; --panel:#111827; --card:#1a2233; --border:#2a3a55;
+  --accent1:#00e5ff; --accent2:#a78bfa; --accent3:#34d399; --accent4:#fb923c; --accent5:#f87171;
+  --text:#e2e8f0; --muted:#64748b; --input-bg:#0d1526; --input-border:#2a3a55;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+body.light {
+  --bg:#f0f4f8; --panel:#ffffff; --card:#f8fafc; --border:#e2e8f0;
+  --accent1:#0284c7; --accent2:#7c3aed; --accent3:#059669; --accent4:#ea580c; --accent5:#dc2626;
+  --text:#0f172a; --muted:#64748b; --input-bg:#ffffff; --input-border:#cbd5e1;
+  --shadow:0 4px 24px rgba(0,0,0,0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
+
+/* HEADER */
+header{
+  background:linear-gradient(135deg,var(--panel) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--border);
+  padding:1rem 2rem; display:flex; align-items:center; gap:1.2rem;
+  position:sticky; top:0; z-index:100; box-shadow:var(--shadow);
+}
+.logo{
+  font-family:'JetBrains Mono',monospace; font-size:1rem; color:var(--accent1);
+  background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.2);
+  padding:.35rem .75rem; border-radius:6px; letter-spacing:.1em; white-space:nowrap;
+}
+header h1{font-size:1.25rem;font-weight:900;letter-spacing:-.02em;}
+header span{color:var(--accent1);}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:.8rem;}
+.badge{
+  background:rgba(167,139,250,.15); border:1px solid rgba(167,139,250,.3); color:var(--accent2);
+  font-size:.7rem; padding:.2rem .6rem; border-radius:999px;
+  font-family:'JetBrains Mono',monospace;
+}
+.theme-btn{
+  background:rgba(255,255,255,.08); border:1px solid var(--border); color:var(--text);
+  cursor:pointer; padding:.35rem .75rem; border-radius:8px;
+  font-size:.83rem; transition:all .2s; font-family:'Outfit',sans-serif;
+}
+.theme-btn:hover{background:rgba(255,255,255,.15);}
+
+/* TABS */
+.tabs{
+  display:flex; background:var(--panel); border-bottom:1px solid var(--border);
+  padding:0 2rem; overflow-x:auto; position:sticky; top:65px; z-index:90;
+}
+.tab-btn{
+  padding:.85rem 1.4rem; border:none; background:none; color:var(--muted);
+  cursor:pointer; font-family:'Outfit',sans-serif; font-size:.9rem; font-weight:600;
+  border-bottom:3px solid transparent; transition:all .25s; white-space:nowrap;
+}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent1);border-bottom-color:var(--accent1);}
+.tab-btn.active.k{color:var(--accent3);border-bottom-color:var(--accent3);}
+.tab-btn.active.v{color:var(--accent2);border-bottom-color:var(--accent2);}
+
+/* LAYOUT */
+.section{display:none;padding:1.5rem 2rem;max-width:1400px;margin:0 auto;}
+.section.active{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
+@media(max-width:900px){
+  .two-col{grid-template-columns:1fr;}
+  .section{padding:1rem;}
+  header h1{font-size:1rem;}
+  header{padding:.8rem 1rem;}
+}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);}
+.card-header{
+  padding:.8rem 1.2rem; background:rgba(255,255,255,.02); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:.6rem;
+  font-size:.8rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.card-body{padding:1.2rem;}
+
+/* INPUT SECTION */
+.input-section{
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:1.2rem; margin-bottom:1.2rem; box-shadow:var(--shadow);
+}
+.input-section-title{
+  display:flex; align-items:center; gap:.6rem;
+  font-size:.78rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:1rem; padding-bottom:.6rem; border-bottom:1px solid var(--border);
+}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;margin-bottom:.9rem;}
+.input-field{display:flex;flex-direction:column;gap:.3rem;}
+.input-field label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.input-field input,.input-field textarea,.input-field select{
+  background:var(--input-bg); border:1px solid var(--input-border); color:var(--text);
+  padding:.48rem .7rem; border-radius:7px; font-family:'JetBrains Mono',monospace;
+  font-size:.8rem; transition:border-color .2s,box-shadow .2s; outline:none; resize:vertical;
+}
+.input-field input:focus,.input-field textarea:focus{
+  border-color:var(--accent1); box-shadow:0 0 0 2px rgba(0,229,255,.15);
+}
+.input-actions{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;}
+.error-msg{font-size:.76rem;color:var(--accent5);margin-top:.5rem;display:none;}
+.error-msg.show{display:block;}
+
+/* SVG */
+.svg-wrap{
+  background:#080d1a; border-radius:8px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; min-height:300px;
+}
+body.light .svg-wrap{background:#f1f5f9;}
+svg.canvas{display:block;width:100%;}
+
+/* STEP LIST */
+.step-list{display:flex;flex-direction:column;gap:.35rem;max-height:260px;overflow-y:auto;}
+.step-item{
+  display:flex; gap:.75rem; align-items:flex-start;
+  padding:.5rem .8rem; border-radius:8px; border:1px solid transparent;
+  transition:all .2s; cursor:default;
+}
+.step-item.done{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.15);}
+.step-item.current{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.3);}
+.step-item.pending{opacity:.32;}
+.step-num{
+  width:21px;height:21px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:700;flex-shrink:0;font-family:'JetBrains Mono',monospace;
+}
+.step-num.done{background:var(--accent3);color:#000;}
+.step-num.current{background:var(--accent1);color:#000;box-shadow:0 0 10px rgba(0,229,255,.5);}
+.step-num.pending{background:var(--border);color:var(--muted);}
+.step-text{font-size:.82rem;line-height:1.4;}
+.step-text b{color:var(--accent1);}
+
+/* CONTROLS */
+.controls{
+  display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;
+  padding:.9rem 1.2rem;border-top:1px solid var(--border);background:rgba(0,0,0,.1);
+}
+.btn{
+  padding:.48rem .95rem;border-radius:7px;border:none;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:.83rem;font-weight:600;transition:all .18s;
+  display:flex;align-items:center;gap:.3rem;
+}
+.btn-primary{background:var(--accent1);color:#000;}
+.btn-primary:hover{filter:brightness(1.15);box-shadow:0 0 14px rgba(0,229,255,.35);}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{background:rgba(255,255,255,.12);}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--accent5);border:1px solid rgba(248,113,113,.25);}
+.btn-danger:hover{background:rgba(248,113,113,.22);}
+.btn-green{background:var(--accent3);color:#000;}
+.btn-green:hover{filter:brightness(1.1);}
+.btn-purple{background:var(--accent2);color:#fff;}
+.btn-purple:hover{filter:brightness(1.1);}
+.btn:disabled{opacity:.28;cursor:not-allowed;pointer-events:none;}
+.speed-wrap{margin-left:auto;display:flex;align-items:center;gap:.4rem;font-size:.76rem;color:var(--muted);}
+input[type=range]{accent-color:var(--accent1);width:72px;cursor:pointer;}
+
+/* RESULT */
+.result-box{
+  margin-top:1.2rem; background:rgba(0,229,255,.04); border:1px solid rgba(0,229,255,.2);
+  border-radius:10px; padding:1.2rem; animation:fadeIn .3s ease;
+}
+.result-box.green{background:rgba(52,211,153,.04);border-color:rgba(52,211,153,.2);}
+.result-box.purple{background:rgba(167,139,250,.04);border-color:rgba(167,139,250,.2);}
+.result-box.hidden{display:none;}
+.result-box h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.8rem;}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;}
+.result-stat{text-align:center;}
+.result-stat .val{font-size:1.35rem;font-weight:900;font-family:'JetBrains Mono',monospace;}
+.result-stat .lbl{font-size:.7rem;color:var(--muted);margin-top:.2rem;}
+.ratio-bar{height:7px;background:var(--border);border-radius:4px;margin-top:.8rem;overflow:hidden;}
+.ratio-fill{height:100%;border-radius:4px;transition:width .9s ease;}
+.compare-wrap{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:.8rem;}
+.compare-bar-label{font-size:.73rem;color:var(--muted);margin-bottom:.2rem;}
+.compare-bar-track{background:var(--border);border-radius:4px;height:25px;overflow:hidden;}
+.compare-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:.5rem;font-size:.76rem;font-weight:700;transition:width 1s ease;color:#000;}
+
+/* INPUT TABLE */
+.input-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.input-table th{
+  text-align:left;padding:.42rem .55rem;color:var(--muted);
+  font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1px solid var(--border);
+}
+.input-table td{padding:.42rem .55rem;border-bottom:1px solid rgba(255,255,255,.03);}
+.pill{
+  display:inline-block;padding:.1rem .42rem;border-radius:999px;
+  font-size:.68rem;font-weight:700;font-family:'JetBrains Mono',monospace;
+}
+
+/* INFO STRIP */
+.info-strip{
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:.8rem 1rem;font-size:.82rem;color:var(--muted);line-height:1.55;margin-bottom:1rem;
+}
+.info-strip b{color:var(--text);}
+.complexity-badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem;}
+.cbadge{
+  padding:.18rem .55rem;border-radius:999px;font-size:.68rem;
+  font-family:'JetBrains Mono',monospace;font-weight:700;border:1px solid;
+}
+
+/* EXPLAIN PANEL */
+.explain-panel{
+  background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.15);
+  border-radius:8px;padding:.75rem 1rem;font-size:.83rem;line-height:1.5;
+  min-height:54px;transition:all .25s;
+}
+.explain-panel .ep-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem;font-weight:700;}
+.explain-panel b{color:var(--accent1);}
+
+/* KNAPSACK VISUAL */
+.knapsack-visual{
+  display:flex;flex-direction:column;gap:.5rem;
+  padding:1rem;background:#080d1a;border-radius:8px;min-height:180px;
+}
+body.light .knapsack-visual{background:#f1f5f9;}
+.item-block{display:flex;flex-direction:column;align-items:center;gap:.22rem;transition:all .3s;}
+.item-block:hover .item-rect{filter:brightness(1.2);}
+.item-rect{
+  border-radius:6px;width:48px;display:flex;align-items:center;justify-content:center;
+  font-size:.66rem;font-weight:700;color:#000;font-family:'JetBrains Mono',monospace;transition:all .3s;
+}
+.item-label{font-size:.63rem;color:var(--muted);text-align:center;}
+
+/* VC LEGEND */
+.vc-legend{display:flex;gap:.8rem;flex-wrap:wrap;padding:.4rem 0;font-size:.75rem;}
+.vc-legend-item{display:flex;align-items:center;gap:.35rem;}
+.vc-dot{width:10px;height:10px;border-radius:50%;}
+
+/* OPTIMAL ROUTE CARD */
+.opt-route-two{
+  display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;align-items:start;
+}
+@media(max-width:860px){.opt-route-two{grid-template-columns:1fr;}}
+.opt-step-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.opt-step-table th{
+  text-align:left;padding:.38rem .55rem;color:var(--muted);
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1px solid var(--border);
+}
+.opt-step-table td{padding:.38rem .55rem;border-bottom:1px solid rgba(255,255,255,.03);}
+.opt-step-table tr.opt-row-done td{color:var(--accent3);}
+.opt-step-table tr.opt-row-done td:first-child{font-weight:700;}
+.opt-route-seq{
+  margin-top:.9rem;padding:.6rem .9rem;border-radius:8px;
+  background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.18);
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.6;
+  color:var(--accent3);word-break:break-all;
+}
+.opt-route-seq .seq-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin-bottom:.25rem;font-family:'Outfit',sans-serif;}
+.opt-na-notice{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:180px;gap:.6rem;color:var(--muted);font-size:.88rem;text-align:center;
+}
+.opt-na-notice span{font-size:2rem;}
+
+/* DP TABLE */
+.dp-table-wrap{overflow-x:auto;overflow-y:auto;max-height:420px;border-radius:8px;}
+.dp-table{
+  border-collapse:separate;border-spacing:0;
+  font-size:.72rem;font-family:'JetBrains Mono',monospace;
+  min-width:max-content;
+}
+.dp-table th{
+  padding:.38rem .55rem;background:rgba(0,0,0,.3);color:var(--muted);
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  border:1px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:5;
+  white-space:nowrap;
+}
+.dp-table th:first-child{left:0;z-index:6;min-width:90px;}
+body.light .dp-table th{background:rgba(0,0,0,.06);}
+.dp-table td{
+  padding:.34rem .5rem;border:1px solid rgba(255,255,255,.05);text-align:center;
+  color:var(--text);transition:background .25s,color .25s,box-shadow .25s;
+  white-space:nowrap;
+}
+.dp-table td:first-child{
+  background:rgba(0,0,0,.25);color:var(--muted);font-weight:700;
+  position:sticky;left:0;z-index:2;border-right:1px solid rgba(255,255,255,.1);
+}
+body.light .dp-table td:first-child{background:rgba(0,0,0,.06);}
+.dp-table td.dp-zero{color:rgba(100,116,139,.45);}
+.dp-table td.dp-active{
+  background:rgba(0,229,255,.18);color:var(--accent1);font-weight:700;
+  box-shadow:inset 0 0 0 2px rgba(0,229,255,.6);
+}
+.dp-table td.dp-traceback{
+  background:rgba(52,211,153,.18);color:var(--accent3);font-weight:700;
+  box-shadow:inset 0 0 0 2px rgba(52,211,153,.6);
+}
+.dp-table td.dp-changed{
+  background:rgba(167,139,250,.12);color:var(--accent2);
+}
+.dp-table tr.dp-row-active > td:first-child{
+  color:var(--accent1);background:rgba(0,229,255,.08);
+}
+.dp-legend{display:flex;gap:.75rem;flex-wrap:wrap;font-size:.72rem;margin-top:.65rem;}
+.dp-legend-item{display:flex;align-items:center;gap:.32rem;}
+.dp-legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* TOOLTIP */
+[data-tip]{position:relative;}
+[data-tip]:hover::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#1a2233;color:var(--text);border:1px solid var(--border);
+  padding:.28rem .55rem;border-radius:6px;font-size:.7rem;white-space:nowrap;
+  z-index:999;pointer-events:none;box-shadow:var(--shadow);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">~/approx</div>
+  <h1>Approximation <span>Algorithms</span> — Visual Simulator</h1>
+  <div class="header-right">
+    <div class="badge">v2.0</div>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active"   onclick="showTab('tsp',this)">🗺️ TSP — Nearest Neighbor</button>
+  <button class="tab-btn k"        onclick="showTab('knap',this)">🎒 Knapsack — Greedy</button>
+  <button class="tab-btn v"        onclick="showTab('vc',this)">🔗 Vertex Cover</button>
+</div>
+
+<!-- ═══════════════════════ TSP ═══════════════════════ -->
+<div id="sec-tsp" class="section active">
+  <div class="info-strip">
+    <b>Travelling Salesman Problem — Nearest Neighbor Heuristic</b><br>
+    Visit every city exactly once and return to start with minimum total distance.
+    Nearest Neighbor always moves to the closest unvisited city.
+    <div class="complexity-badges">
+      <span class="cbadge" style="color:var(--accent4);border-color:rgba(251,146,60,.3)">Time: O(n²)</span>
+      <span class="cbadge" style="color:var(--accent3);border-color:rgba(52,211,153,.3)">Space: O(n)</span>
+      <span class="cbadge" style="color:var(--accent1);border-color:rgba(0,229,255,.3)">Ratio: O(log n)</span>
+      <span class="cbadge" style="color:var(--muted);border-color:var(--border)">Brute-force optimal computed for N ≤ 8</span>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-section-title"><div class="dot" style="background:var(--accent1)"></div>Custom Input</div>
+    <div class="input-grid">
+      <div class="input-field">
+        <label>Number of Cities (3–10)</label>
+        <input id="tsp-n" type="number" value="6" min="3" max="10" />
+      </div>
+      <div class="input-field">
+        <label>Start City (0-based index)</label>
+        <input id="tsp-start" type="number" value="0" min="0" />
+      </div>
+      <div class="input-field" style="grid-column:1/-1">
+        <label>Coordinates — one city per line: x y  (canvas is 480 × 300)</label>
+        <textarea id="tsp-coords" rows="6">120 60
+360 80
+420 200
+300 260
+140 240
+60 150</textarea>
+      </div>
+    </div>
+    <div class="input-actions">
+      <button class="btn btn-primary" onclick="loadTSPInput()">Apply Input</button>
+      <button class="btn btn-ghost"   onclick="tspRandom()">🎲 Random Cities</button>
+      <button class="btn btn-ghost"   onclick="tspResetDefault()">↺ Default</button>
+    </div>
+    <div class="error-msg" id="tsp-err"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header"><div class="dot" style="background:var(--accent1)"></div>Graph Visualization</div>
+      <div class="card-body">
+        <div class="svg-wrap">
+          <svg id="tsp-svg" class="canvas" viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="controls">
+          <button class="btn btn-danger"  onclick="tspReset()"  data-tip="Reset to step 0">↺ Reset</button>
+          <button class="btn btn-ghost"   id="tsp-prev" onclick="tspPrev()" disabled>← Prev</button>
+          <button class="btn btn-primary" id="tsp-next" onclick="tspNext()">Next →</button>
+          <button class="btn btn-ghost"   id="tsp-auto" onclick="tspAuto()">▶ Auto</button>
+          <div class="speed-wrap">Speed <input type="range" id="tsp-speed" min="200" max="2000" value="900" step="100"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent4)"></div>Step Explanation</div>
+        <div class="card-body">
+          <div class="explain-panel"><div class="ep-lbl">What's happening</div><span id="tsp-explain">Click Next to begin.</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent4)"></div>Cities</div>
+        <div class="card-body" style="padding:.8rem">
+          <table class="input-table" id="tsp-city-table">
+            <thead><tr><th>City</th><th>X</th><th>Y</th><th>Status</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent3)"></div>Step Trace</div>
+        <div class="card-body" style="padding:.8rem">
+          <div class="step-list" id="tsp-steps"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTIMAL ROUTE CARD -->
+  <div class="card" id="tsp-opt-card" style="margin-top:1.2rem;display:none;">
+    <div class="card-header">
+      <div class="dot" style="background:var(--accent3)"></div>Optimal Route — Brute-Force Calculation
+      <span id="tsp-opt-header-note" style="margin-left:auto;font-size:.68rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0"></span>
+    </div>
+    <div class="card-body" style="padding:1rem;">
+      <div id="tsp-opt-body">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div id="tsp-result" class="result-box hidden">
+    <h3>📊 Final Result Summary</h3>
+    <div class="result-grid">
+      <div class="result-stat"><div class="val" id="tsp-approx-cost" style="color:var(--accent4)">—</div><div class="lbl">Approx Distance</div></div>
+      <div class="result-stat"><div class="val" id="tsp-opt-cost"    style="color:var(--accent3)">—</div><div class="lbl">Optimal (brute-force)</div></div>
+      <div class="result-stat"><div class="val" id="tsp-ratio"       style="color:var(--accent1)">—</div><div class="lbl">Approx Ratio</div></div>
+    </div>
+    <div class="ratio-bar"><div class="ratio-fill" id="tsp-ratio-bar" style="background:var(--accent1);width:0%"></div></div>
+    <div style="font-size:.73rem;color:var(--muted);margin-top:.4rem">Bar = how close to optimal (100 % = perfect). Brute-force skipped for N &gt; 8.</div>
+    <div class="compare-wrap">
+      <div><div class="compare-bar-label">Approx Route</div><div class="compare-bar-track"><div class="compare-bar-fill" id="tsp-bar-a" style="background:var(--accent4)">—</div></div></div>
+      <div><div class="compare-bar-label">Optimal Route</div><div class="compare-bar-track"><div class="compare-bar-fill" id="tsp-bar-o" style="background:var(--accent3)">—</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ KNAPSACK ═══════════════════════ -->
+<div id="sec-knap" class="section">
+  <div class="info-strip">
+    <b>0/1 Knapsack — Greedy Heuristic vs DP Optimal</b><br>
+    Fill a knapsack of capacity W to maximise total value. Greedy sorts by value/weight ratio.
+    DP gives the true optimal for comparison.
+    <div class="complexity-badges">
+      <span class="cbadge" style="color:var(--accent4);border-color:rgba(251,146,60,.3)">Greedy: O(n log n)</span>
+      <span class="cbadge" style="color:var(--accent3);border-color:rgba(52,211,153,.3)">DP: O(n·W)</span>
+      <span class="cbadge" style="color:var(--accent1);border-color:rgba(0,229,255,.3)">Ratio ≥ ½</span>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-section-title"><div class="dot" style="background:var(--accent3)"></div>Custom Input</div>
+    <div class="input-grid">
+      <div class="input-field">
+        <label>Values (space-separated)</label>
+        <input id="k-values"  type="text" value="10 6 8 4 9 5" placeholder="e.g. 10 6 8" />
+      </div>
+      <div class="input-field">
+        <label>Weights (space-separated)</label>
+        <input id="k-weights" type="text" value="4 1 3 2 5 1"  placeholder="e.g. 4 1 3" />
+      </div>
+      <div class="input-field">
+        <label>Capacity</label>
+        <input id="k-cap" type="number" value="8" min="1" />
+      </div>
+    </div>
+    <div class="input-actions">
+      <button class="btn btn-green"  onclick="loadKnapsackInput()">Apply Input</button>
+      <button class="btn btn-ghost"  onclick="knapRandom()">🎲 Random Items</button>
+      <button class="btn btn-ghost"  onclick="knapResetDefault()">↺ Default</button>
+    </div>
+    <div class="error-msg" id="knap-err"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header"><div class="dot" style="background:var(--accent3)"></div>Knapsack Visualizer</div>
+      <div class="card-body">
+        <div id="knap-visual" class="knapsack-visual"></div>
+        <div style="padding:.6rem 0 0;display:flex;gap:1.2rem;font-size:.78rem;color:var(--muted);">
+          <span>Capacity: <b id="knap-cap-disp" style="color:var(--text)">—</b></span>
+          <span>Used: <b id="knap-used-disp" style="color:var(--accent3)">0</b></span>
+          <span>Value: <b id="knap-val-disp"  style="color:var(--accent4)">0</b></span>
+        </div>
+        <div class="controls">
+          <button class="btn btn-danger"  onclick="knapReset()">↺ Reset</button>
+          <button class="btn btn-ghost"   id="knap-prev" onclick="knapPrev()" disabled>← Prev</button>
+          <button class="btn btn-green"   id="knap-next" onclick="knapNext()">Next →</button>
+          <button class="btn btn-ghost"   id="knap-auto" onclick="knapAuto()">▶ Auto</button>
+          <div class="speed-wrap">Speed <input type="range" id="knap-speed" min="200" max="2000" value="900" step="100"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent4)"></div>Step Explanation</div>
+        <div class="card-body">
+          <div class="explain-panel"><div class="ep-lbl">What's happening</div><span id="knap-explain">Click Next to begin.</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent4)"></div>Items — sorted by V/W ratio ↓</div>
+        <div class="card-body" style="padding:.8rem">
+          <table class="input-table" id="knap-item-table">
+            <thead><tr><th>Item</th><th>W</th><th>V</th><th>Ratio</th><th>Status</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent3)"></div>Step Trace</div>
+        <div class="card-body" style="padding:.8rem">
+          <div class="step-list" id="knap-steps"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DP TABLE CARD -->
+  <div class="card" id="knap-dp-card" style="margin-top:1.2rem;">
+    <div class="card-header">
+      <div class="dot" style="background:var(--accent2)"></div>DP Table — dp[item][capacity]
+      <span style="margin-left:auto;font-size:.68rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">
+        Row = item considered &nbsp;|&nbsp; Column = capacity 0 → W
+      </span>
+    </div>
+    <div class="card-body" style="padding:1rem;">
+      <div class="dp-table-wrap">
+        <table class="dp-table" id="knap-dp-table"></table>
+      </div>
+      <div class="dp-legend">
+        <div class="dp-legend-item"><div class="dp-legend-swatch" style="background:rgba(0,229,255,.35);box-shadow:inset 0 0 0 2px rgba(0,229,255,.7)"></div><span>Active cell being filled</span></div>
+        <div class="dp-legend-item"><div class="dp-legend-swatch" style="background:rgba(167,139,250,.2)"></div><span>Cells updated vs previous row</span></div>
+        <div class="dp-legend-item"><div class="dp-legend-swatch" style="background:rgba(52,211,153,.25);box-shadow:inset 0 0 0 2px rgba(52,211,153,.7)"></div><span>Traceback path (optimal items)</span></div>
+      </div>
+      <div id="knap-dp-explain" style="margin-top:.75rem;font-size:.8rem;color:var(--muted);line-height:1.55;"></div>
+    </div>
+  </div>
+
+  <div id="knap-result" class="result-box green hidden">
+    <h3>📊 Final Result Summary</h3>
+    <div class="result-grid">
+      <div class="result-stat"><div class="val" id="knap-approx-val" style="color:var(--accent4)">—</div><div class="lbl">Greedy Value</div></div>
+      <div class="result-stat"><div class="val" id="knap-opt-val"    style="color:var(--accent3)">—</div><div class="lbl">Optimal (DP)</div></div>
+      <div class="result-stat"><div class="val" id="knap-ratio"      style="color:var(--accent1)">—</div><div class="lbl">Approx Ratio</div></div>
+    </div>
+    <div class="ratio-bar"><div class="ratio-fill" id="knap-ratio-bar" style="background:var(--accent3);width:0%"></div></div>
+    <div style="font-size:.73rem;color:var(--muted);margin-top:.4rem">Greedy guarantees ≥ 50 % of optimal value in worst case.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ VERTEX COVER ═══════════════════════ -->
+<div id="sec-vc" class="section">
+  <div class="info-strip">
+    <b>Vertex Cover — 2-Approximation</b><br>
+    Find minimum vertices so every edge has ≥ 1 endpoint in the set.
+    Pick any uncovered edge, add <em>both</em> endpoints to the cover, repeat.
+    <div class="complexity-badges">
+      <span class="cbadge" style="color:var(--accent4);border-color:rgba(251,146,60,.3)">Time: O(V+E)</span>
+      <span class="cbadge" style="color:var(--accent3);border-color:rgba(52,211,153,.3)">Space: O(V+E)</span>
+      <span class="cbadge" style="color:var(--accent2);border-color:rgba(167,139,250,.3)">Ratio = 2</span>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-section-title"><div class="dot" style="background:var(--accent2)"></div>Custom Input</div>
+    <div class="input-grid">
+      <div class="input-field">
+        <label>Number of Nodes (2–15)</label>
+        <input id="vc-n" type="number" value="7" min="2" max="15" />
+      </div>
+      <div class="input-field" style="grid-column:span 2">
+        <label>Edges — one per line: u v  (0-indexed)</label>
+        <textarea id="vc-input" rows="6">0 1
+1 2
+2 3
+3 4
+4 5
+5 0
+0 6
+6 2
+6 3</textarea>
+      </div>
+    </div>
+    <div class="input-actions">
+      <button class="btn btn-purple" onclick="loadVCInput()">Apply Input</button>
+      <button class="btn btn-ghost"  onclick="vcRandom()">🎲 Random Graph</button>
+      <button class="btn btn-ghost"  onclick="vcResetDefault()">↺ Default</button>
+    </div>
+    <div class="error-msg" id="vc-err"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header"><div class="dot" style="background:var(--accent2)"></div>Graph Visualization</div>
+      <div class="card-body">
+        <div class="vc-legend">
+          <div class="vc-legend-item"><div class="vc-dot" style="background:var(--muted)"></div>Uncovered</div>
+          <div class="vc-legend-item"><div class="vc-dot" style="background:var(--accent2)"></div>In Cover</div>
+          <div class="vc-legend-item"><div class="vc-dot" style="background:var(--accent4)"></div>Selected Edge</div>
+        </div>
+        <div class="svg-wrap">
+          <svg id="vc-svg" class="canvas" viewBox="0 0 480 280" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="controls">
+          <button class="btn btn-danger"  onclick="vcReset()">↺ Reset</button>
+          <button class="btn btn-ghost"   id="vc-prev" onclick="vcPrev()" disabled>← Prev</button>
+          <button class="btn btn-purple"  id="vc-next" onclick="vcNext()">Next →</button>
+          <button class="btn btn-ghost"   id="vc-auto" onclick="vcAuto()">▶ Auto</button>
+          <div class="speed-wrap">Speed <input type="range" id="vc-speed" min="200" max="2000" value="900" step="100"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent2)"></div>Step Explanation</div>
+        <div class="card-body">
+          <div class="explain-panel"><div class="ep-lbl">What's happening</div><span id="vc-explain">Click Next to begin.</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent2)"></div>Edge List</div>
+        <div class="card-body" style="padding:.8rem">
+          <table class="input-table" id="vc-edge-table">
+            <thead><tr><th>Edge</th><th>From</th><th>To</th><th>Status</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="dot" style="background:var(--accent3)"></div>Step Trace</div>
+        <div class="card-body" style="padding:.8rem">
+          <div class="step-list" id="vc-steps"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="vc-result" class="result-box purple hidden">
+    <h3>📊 Final Result Summary</h3>
+    <div class="result-grid">
+      <div class="result-stat"><div class="val" id="vc-approx-size" style="color:var(--accent2)">—</div><div class="lbl">Approx Cover Size</div></div>
+      <div class="result-stat"><div class="val" id="vc-opt-size"    style="color:var(--accent3)">—</div><div class="lbl">Max Matching (LB)</div></div>
+      <div class="result-stat"><div class="val" id="vc-ratio"       style="color:var(--accent1)">—</div><div class="lbl">Approx Ratio</div></div>
+    </div>
+    <div class="ratio-bar"><div class="ratio-fill" id="vc-ratio-bar" style="background:var(--accent2);width:0%"></div></div>
+    <div style="font-size:.73rem;color:var(--muted);margin-top:.4rem">2-approximation is best-known poly-time algorithm for Vertex Cover (assuming P≠NP).</div>
+    <div id="vc-cover-list" style="margin-top:.8rem;font-size:.84rem;"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════════
+const dist = (a,b) => Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);
+const fmt  = n => typeof n==='number' ? n.toFixed(1) : n;
+const pct  = (a,b) => b===0 ? 0 : Math.min(100, Math.round(a/b*100));
+const rnd  = (lo,hi) => Math.floor(Math.random()*(hi-lo+1))+lo;
+
+function showErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
+function clearErr(id){ document.getElementById(id).classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  document.getElementById('theme-btn').textContent =
+    document.body.classList.contains('light') ? '🌞 Light' : '🌙 Dark';
+}
+
+// ═══════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+function showTab(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// TSP — NEAREST NEIGHBOR
+// ═══════════════════════════════════════════════════════
+let TSP_CITIES = [
+  {name:'A',x:120,y:60},{name:'B',x:360,y:80},{name:'C',x:420,y:200},
+  {name:'D',x:300,y:260},{name:'E',x:140,y:240},{name:'F',x:60,y:150}
+];
+let TSP_START = 0;
+let TSP_OPT   = null;
+
+const TSP_DEF_CITIES = [
+  {name:'A',x:120,y:60},{name:'B',x:360,y:80},{name:'C',x:420,y:200},
+  {name:'D',x:300,y:260},{name:'E',x:140,y:240},{name:'F',x:60,y:150}
+];
+
+let tspState={}, tspTimer=null;
+
+function tspResetDefault(){
+  TSP_CITIES = TSP_DEF_CITIES.map(c=>({...c}));
+  TSP_START = 0;
+  document.getElementById('tsp-n').value=6;
+  document.getElementById('tsp-start').value=0;
+  document.getElementById('tsp-coords').value=TSP_DEF_CITIES.map(c=>`${c.x} ${c.y}`).join('\n');
+  clearErr('tsp-err');
+  tspInit();
+}
+
+function loadTSPInput(){
+  clearErr('tsp-err');
+  const n=parseInt(document.getElementById('tsp-n').value);
+  const si=parseInt(document.getElementById('tsp-start').value);
+  const lines=document.getElementById('tsp-coords').value.trim().split('\n').filter(l=>l.trim());
+  if(isNaN(n)||n<3){showErr('tsp-err','Need at least 3 cities.');return;}
+  if(lines.length!==n){showErr('tsp-err',`Expected ${n} lines, got ${lines.length}.`);return;}
+  if(isNaN(si)||si<0||si>=n){showErr('tsp-err',`Start index must be 0–${n-1}.`);return;}
+  const cities=[];
+  for(let i=0;i<lines.length;i++){
+    const p=lines[i].trim().split(/\s+/).map(Number);
+    if(p.length<2||p.some(isNaN)||p[0]<0||p[1]<0){showErr('tsp-err',`Line ${i+1}: bad coordinates.`);return;}
+    cities.push({name:String.fromCharCode(65+i),x:p[0],y:p[1]});
+  }
+  TSP_CITIES=cities; TSP_START=si;
+  tspInit();
+}
+
+function tspRandom(){
+  clearErr('tsp-err');
+  const n=Math.max(3,parseInt(document.getElementById('tsp-n').value)||6);
+  const cities=[];
+  for(let i=0;i<n;i++) cities.push({name:String.fromCharCode(65+i),x:rnd(40,440),y:rnd(30,270)});
+  TSP_CITIES=cities; TSP_START=0;
+  document.getElementById('tsp-start').value=0;
+  document.getElementById('tsp-coords').value=cities.map(c=>`${c.x} ${c.y}`).join('\n');
+  tspInit();
+}
+
+// Brute-force (only N≤8) — returns {cost, route} or null
+function tspBruteDetails(){
+  const n=TSP_CITIES.length;
+  if(n>8) return null;
+  const rest=[];
+  for(let i=0;i<n;i++) if(i!==TSP_START) rest.push(i);
+  let best=Infinity, bestRoute=null;
+  for(const perm of permute(rest)){
+    const route=[TSP_START,...perm,TSP_START];
+    let c=0;
+    for(let i=0;i<route.length-1;i++) c+=dist(TSP_CITIES[route[i]],TSP_CITIES[route[i+1]]);
+    if(c<best){best=c;bestRoute=[...route];}
+  }
+  return bestRoute?{cost:best,route:bestRoute}:null;
+}
+// Convenience wrapper (cost only) — kept for backward compat
+function tspBrute(){
+  const r=tspBruteDetails(); return r?r.cost:null;
+}
+function permute(a){
+  if(a.length<=1) return[a];
+  const r=[];
+  for(let i=0;i<a.length;i++){
+    const rest=[...a.slice(0,i),...a.slice(i+1)];
+    for(const p of permute(rest)) r.push([a[i],...p]);
+  }
+  return r;
+}
+
+// ── Optimal route card helpers ──────────────────────────────
+let TSP_OPT_DETAILS=null; // {cost,route} or null
+
+function buildOptRouteCard(){
+  const card=document.getElementById('tsp-opt-card');
+  const body=document.getElementById('tsp-opt-body');
+  const note=document.getElementById('tsp-opt-header-note');
+  card.style.display='none';
+  body.innerHTML='';
+  if(!TSP_OPT_DETAILS){
+    // N > 8 — show notice
+    body.innerHTML=`<div class="opt-na-notice">
+      <span>🔍</span>
+      <div><b>Brute-force skipped</b> — only computed for N ≤ 8 cities.<br>
+      With <b>${TSP_CITIES.length} cities</b> there are <b>${factorial(TSP_CITIES.length-1).toLocaleString()}</b> permutations to check.</div>
+    </div>`;
+    note.textContent='N > 8 — too many permutations';
+    card.style.display='';
+    return;
+  }
+  const optRoute=TSP_OPT_DETAILS.route;
+  const optCost=TSP_OPT_DETAILS.cost;
+  note.textContent=`Total: ${fmt(optCost)} — ${optRoute.length-1} edges`;
+
+  // Build edge steps
+  let edges=[], running=0;
+  for(let i=0;i<optRoute.length-1;i++){
+    const a=optRoute[i],b=optRoute[i+1];
+    const d=dist(TSP_CITIES[a],TSP_CITIES[b]);
+    running+=d;
+    edges.push({from:TSP_CITIES[a].name,to:TSP_CITIES[b].name,d,running});
+  }
+
+  body.innerHTML=`<div class="opt-route-two">
+    <div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Edge-by-Edge Breakdown</div>
+      <table class="opt-step-table">
+        <thead><tr><th>#</th><th>From</th><th>→ To</th><th>Dist</th><th>Running Total</th></tr></thead>
+        <tbody id="tsp-opt-steps-body">
+          ${edges.map((e,i)=>`<tr class="opt-row-done">
+            <td>${i+1}</td>
+            <td><b>${e.from}</b></td><td><b>${e.to}</b></td>
+            <td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">${fmt(e.d)}</td>
+            <td style="color:var(--accent1);font-family:'JetBrains Mono',monospace">${fmt(e.running)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="opt-route-seq">
+        <div class="seq-lbl">Optimal Route Sequence</div>
+        ${optRoute.map(i=>TSP_CITIES[i].name).join(' → ')}
+      </div>
+    </div>
+    <div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Optimal Route Visualized</div>
+      <div style="background:#080d1a;border-radius:8px;overflow:hidden;">
+        <svg id="tsp-opt-svg" viewBox="0 0 480 300" style="display:block;width:100%;" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:.55rem;line-height:1.5">
+        <b style="color:var(--accent3)">Green route</b> = optimal (brute-force). &nbsp;
+        Total distance: <b style="color:var(--accent3)">${fmt(optCost)}</b><br>
+        Greedy distance: <b style="color:var(--accent4)">${fmt(tspState.totalCost)}</b> &nbsp;|&nbsp;
+        Approx ratio: <b style="color:var(--accent1)">${(tspState.totalCost/optCost).toFixed(3)}×</b>
+      </div>
+    </div>
+  </div>`;
+
+  renderOptSVG(optRoute);
+  card.style.display='';
+}
+
+function renderOptSVG(optRoute){
+  const svg=document.getElementById('tsp-opt-svg');
+  if(!svg) return;
+  svg.innerHTML=`<defs>
+    <filter id="gOpt"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gOpt2"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <polygon points="0 0, 7 3.5, 0 7" fill="#34d399" opacity=".8"/>
+    </marker>
+  </defs>`;
+  // Draw all edges in opt route
+  for(let i=0;i<optRoute.length-1;i++){
+    const a=TSP_CITIES[optRoute[i]],b=TSP_CITIES[optRoute[i+1]];
+    const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    const ln=svgEl('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,
+      stroke:'#34d399','stroke-width':2.5,opacity:.85,'marker-end':'url(#arr)'});
+    ln.setAttribute('filter','url(#gOpt)');
+    svg.appendChild(ln);
+    svg.appendChild(svgEl('text',{x:mid.x,y:mid.y-7,fill:'#34d399','font-size':9,
+      'text-anchor':'middle','font-family':'JetBrains Mono,monospace','font-weight':700},
+      fmt(dist(a,b))));
+  }
+  // Nodes
+  TSP_CITIES.forEach((c,i)=>{
+    const isStart=i===TSP_START;
+    const r=isStart?14:11;
+    const fill=isStart?'#34d399':'#1a2233';
+    const stroke=isStart?'#34d399':'#4a6a55';
+    const ci=svgEl('circle',{cx:c.x,cy:c.y,r,fill,stroke,'stroke-width':2});
+    if(isStart) ci.setAttribute('filter','url(#gOpt2)');
+    svg.appendChild(ci);
+    svg.appendChild(svgEl('text',{x:c.x,y:c.y+4,fill:isStart?'#000':'#e2e8f0',
+      'font-size':11,'text-anchor':'middle','font-weight':700,'font-family':'Outfit,sans-serif'},c.name));
+  });
+}
+
+function factorial(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+
+function tspBuild(){
+  const n=TSP_CITIES.length;
+  const visited=new Array(n).fill(false);
+  const route=[TSP_START];
+  visited[TSP_START]=true;
+  const steps=[{
+    route:[...route],visited:[...visited],
+    msg:`Start at city <b>${TSP_CITIES[TSP_START].name}</b>`,
+    explain:`We begin the tour at city <b>${TSP_CITIES[TSP_START].name}</b>. All other ${n-1} cities are unvisited.`,
+    currentEdge:null,cost:0
+  }];
+  let total=0;
+  while(route.length<n){
+    const cur=route[route.length-1];
+    let best=-1,bestD=Infinity;
+    for(let i=0;i<n;i++){
+      if(!visited[i]){const d=dist(TSP_CITIES[cur],TSP_CITIES[i]);if(d<bestD){bestD=d;best=i;}}
+    }
+    total+=bestD; visited[best]=true; route.push(best);
+    steps.push({
+      route:[...route],visited:[...visited],
+      msg:`<b>${TSP_CITIES[cur].name}</b>→<b>${TSP_CITIES[best].name}</b> (d=${fmt(bestD)})`,
+      explain:`From <b>${TSP_CITIES[cur].name}</b>, the nearest unvisited city is <b>${TSP_CITIES[best].name}</b> at distance <b>${fmt(bestD)}</b>. Running total: <b>${fmt(total)}</b>.`,
+      currentEdge:[cur,best],cost:total
+    });
+  }
+  const last=route[route.length-1];
+  const d=dist(TSP_CITIES[last],TSP_CITIES[TSP_START]);
+  total+=d; route.push(TSP_START);
+  steps.push({
+    route:[...route],visited:[...visited],
+    msg:`Return to <b>${TSP_CITIES[TSP_START].name}</b> (d=${fmt(d)}) — tour done`,
+    explain:`All cities visited. Return to start <b>${TSP_CITIES[TSP_START].name}</b> (distance <b>${fmt(d)}</b>). <b>Total tour = ${fmt(total)}</b>.`,
+    currentEdge:[last,TSP_START],cost:total
+  });
+  return{steps,totalCost:total};
+}
+
+function tspInit(){
+  clearInterval(tspTimer); tspTimer=null;
+  TSP_OPT_DETAILS=tspBruteDetails();
+  TSP_OPT=TSP_OPT_DETAILS?TSP_OPT_DETAILS.cost:null;
+  const{steps,totalCost}=tspBuild();
+  tspState={steps,totalCost,cur:0,autoRunning:false};
+  // Hide opt card until algorithm finishes
+  document.getElementById('tsp-opt-card').style.display='none';
+  buildTspCityTable(); buildTspStepList(); tspRenderStep(0);
+}
+
+function buildTspCityTable(){
+  const tb=document.querySelector('#tsp-city-table tbody'); tb.innerHTML='';
+  TSP_CITIES.forEach((c,i)=>{
+    const tr=document.createElement('tr'); tr.id=`tsp-row-${i}`;
+    tr.innerHTML=`<td><b>${c.name}</b>${i===TSP_START?' <span class="pill" style="background:rgba(0,229,255,.15);color:var(--accent1)">start</span>':''}</td>
+    <td>${c.x}</td><td>${c.y}</td>
+    <td id="tsp-st-${i}"><span class="pill" style="background:rgba(100,116,139,.2);color:var(--muted)">waiting</span></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function buildTspStepList(){
+  const el=document.getElementById('tsp-steps'); el.innerHTML='';
+  tspState.steps.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='step-item pending'; d.id=`tsp-step-${i}`;
+    d.innerHTML=`<div class="step-num pending">${i+1}</div><div class="step-text">${s.msg}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function tspRenderStep(idx){
+  const s=tspState.steps[idx];
+  const svg=document.getElementById('tsp-svg');
+  svg.innerHTML=`<defs>
+    <filter id="gT"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gT2"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  // Edges
+  for(let i=0;i<s.route.length-1;i++){
+    const a=TSP_CITIES[s.route[i]],b=TSP_CITIES[s.route[i+1]];
+    const isLast=s.currentEdge&&s.route[i]===s.currentEdge[0]&&s.route[i+1]===s.currentEdge[1];
+    const ln=svgEl('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,
+      stroke:isLast?'#00e5ff':'#a78bfa','stroke-width':isLast?3:1.5,opacity:isLast?1:.55});
+    if(isLast){ln.setAttribute('filter','url(#gT)');}
+    svg.appendChild(ln);
+    if(isLast){
+      svg.appendChild(svgEl('text',{x:(a.x+b.x)/2,y:(a.y+b.y)/2-7,
+        fill:'#00e5ff','font-size':10,'text-anchor':'middle',
+        'font-family':'JetBrains Mono,monospace','font-weight':700},fmt(dist(a,b))));
+    }
+  }
+
+  // Nodes
+  TSP_CITIES.forEach((c,i)=>{
+    const vis=s.visited[i];
+    const isCur=s.route.length>0&&s.route[s.route.length-1]===i&&idx<tspState.steps.length-1;
+    const r=isCur?16:i===TSP_START?14:12;
+    const fill=isCur?'#00e5ff':vis?'#a78bfa':'#1a2233';
+    const stroke=isCur?'#00e5ff':vis?'#a78bfa':'#2a3a55';
+    const ci=svgEl('circle',{cx:c.x,cy:c.y,r,fill,stroke,'stroke-width':2});
+    if(isCur) ci.setAttribute('filter','url(#gT2)');
+    svg.appendChild(ci);
+    svg.appendChild(svgEl('text',{x:c.x,y:c.y+4,fill:vis?'#000':'#e2e8f0',
+      'font-size':11,'text-anchor':'middle','font-weight':700,'font-family':'Outfit,sans-serif'},c.name));
+    const st=document.getElementById(`tsp-st-${i}`);
+    if(st) st.innerHTML=isCur
+      ?`<span class="pill" style="background:rgba(0,229,255,.2);color:var(--accent1)">current</span>`
+      :vis?`<span class="pill" style="background:rgba(167,139,250,.2);color:var(--accent2)">visited</span>`
+          :`<span class="pill" style="background:rgba(100,116,139,.2);color:var(--muted)">waiting</span>`;
+  });
+
+  updateStepList('tsp-step-',idx);
+  document.getElementById('tsp-explain').innerHTML=s.explain||s.msg;
+  document.getElementById('tsp-prev').disabled=(idx===0);
+  document.getElementById('tsp-next').disabled=(idx===tspState.steps.length-1);
+
+  if(idx===tspState.steps.length-1){
+    const approx=tspState.totalCost, opt=TSP_OPT;
+    document.getElementById('tsp-approx-cost').textContent=fmt(approx);
+    document.getElementById('tsp-opt-cost').textContent=opt!==null?fmt(opt):'N/A (N>8)';
+    document.getElementById('tsp-ratio').textContent=opt!==null?(approx/opt).toFixed(2)+'x':'—';
+    document.getElementById('tsp-result').classList.remove('hidden');
+    const q=opt!==null?pct(opt,approx):0;
+    setTimeout(()=>{
+      document.getElementById('tsp-ratio-bar').style.width=q+'%';
+      document.getElementById('tsp-bar-a').style.width='100%';
+      document.getElementById('tsp-bar-a').textContent=fmt(approx);
+      if(opt!==null){
+        document.getElementById('tsp-bar-o').style.width=pct(opt,approx)+'%';
+        document.getElementById('tsp-bar-o').textContent=fmt(opt);
+      }
+    },120);
+    // Show optimal route card
+    buildOptRouteCard();
+  } else {
+    document.getElementById('tsp-result').classList.add('hidden');
+    document.getElementById('tsp-opt-card').style.display='none';
+  }
+}
+
+function tspNext(){ if(tspState.cur<tspState.steps.length-1){tspState.cur++;tspRenderStep(tspState.cur);} }
+function tspPrev(){ if(tspState.cur>0){tspState.cur--;tspRenderStep(tspState.cur);} }
+function tspReset(){
+  clearInterval(tspTimer); tspTimer=null;
+  document.getElementById('tsp-auto').textContent='▶ Auto';
+  tspState.autoRunning=false; tspState.cur=0; tspRenderStep(0);
+}
+function tspAuto(){
+  if(tspState.autoRunning){
+    clearInterval(tspTimer); tspTimer=null;
+    tspState.autoRunning=false; document.getElementById('tsp-auto').textContent='▶ Auto'; return;
+  }
+  tspState.autoRunning=true; document.getElementById('tsp-auto').textContent='⏸ Pause';
+  const run=()=>{
+    if(tspState.cur>=tspState.steps.length-1){
+      clearInterval(tspTimer); tspTimer=null; tspState.autoRunning=false;
+      document.getElementById('tsp-auto').textContent='▶ Auto'; return;
+    }
+    tspState.cur++; tspRenderStep(tspState.cur);
+    clearInterval(tspTimer);
+    tspTimer=setInterval(run,+document.getElementById('tsp-speed').value);
+  };
+  tspTimer=setInterval(run,+document.getElementById('tsp-speed').value);
+}
+
+// ═══════════════════════════════════════════════════════
+// KNAPSACK — GREEDY + DP
+// ═══════════════════════════════════════════════════════
+let KNAP_ITEMS=[
+  {name:'Laptop',weight:4,value:10},{name:'Phone',weight:1,value:6},
+  {name:'Camera',weight:3,value:8},{name:'Book',weight:2,value:4},
+  {name:'Tablet',weight:5,value:9},{name:'Watch',weight:1,value:5}
+];
+let KNAP_CAP=8;
+let knapSorted=[], KNAP_OPT=0;
+let knapState={}, knapTimer=null;
+const ICOLORS=['#fb923c','#00e5ff','#a78bfa','#34d399','#f87171','#fbbf24','#60a5fa','#e879f9'];
+
+const KDEF_ITEMS=[
+  {name:'Laptop',weight:4,value:10},{name:'Phone',weight:1,value:6},
+  {name:'Camera',weight:3,value:8},{name:'Book',weight:2,value:4},
+  {name:'Tablet',weight:5,value:9},{name:'Watch',weight:1,value:5}
+];
+const KDEF_CAP=8;
+
+function knapResetDefault(){
+  KNAP_ITEMS=KDEF_ITEMS.map(it=>({...it})); KNAP_CAP=KDEF_CAP;
+  document.getElementById('k-values').value=KDEF_ITEMS.map(i=>i.value).join(' ');
+  document.getElementById('k-weights').value=KDEF_ITEMS.map(i=>i.weight).join(' ');
+  document.getElementById('k-cap').value=KDEF_CAP;
+  clearErr('knap-err'); knapInit();
+}
+
+function loadKnapsackInput(){
+  clearErr('knap-err');
+  const vs=document.getElementById('k-values').value.trim();
+  const ws=document.getElementById('k-weights').value.trim();
+  const cap=parseInt(document.getElementById('k-cap').value);
+  if(!vs||!ws){showErr('knap-err','Values and weights cannot be empty.');return;}
+  const vals=vs.split(/\s+/).map(Number), wgts=ws.split(/\s+/).map(Number);
+  if(vals.some(v=>isNaN(v)||v<=0)){showErr('knap-err','All values must be positive numbers.');return;}
+  if(wgts.some(w=>isNaN(w)||w<=0)){showErr('knap-err','All weights must be positive numbers.');return;}
+  if(vals.length!==wgts.length){showErr('knap-err',`Count mismatch: ${vals.length} values vs ${wgts.length} weights.`);return;}
+  if(isNaN(cap)||cap<=0){showErr('knap-err','Capacity must be positive.');return;}
+  KNAP_ITEMS=vals.map((v,i)=>({name:`Item${i+1}`,weight:wgts[i],value:v}));
+  KNAP_CAP=cap; knapInit();
+}
+
+function knapRandom(){
+  clearErr('knap-err');
+  const n=rnd(4,8);
+  KNAP_ITEMS=Array.from({length:n},(_,i)=>({name:`Item${i+1}`,weight:rnd(1,6),value:rnd(3,15)}));
+  KNAP_CAP=rnd(8,16);
+  document.getElementById('k-values').value=KNAP_ITEMS.map(i=>i.value).join(' ');
+  document.getElementById('k-weights').value=KNAP_ITEMS.map(i=>i.weight).join(' ');
+  document.getElementById('k-cap').value=KNAP_CAP;
+  knapInit();
+}
+
+// Full DP matrix (returned so we can render it)
+let KNAP_DP_MATRIX=[];
+let KNAP_DP_ITEMS=[];
+let KNAP_DP_CAP=0;
+
+function knapDP(items,cap){
+  const n=items.length;
+  const dp=Array.from({length:n+1},()=>new Array(cap+1).fill(0));
+  for(let i=1;i<=n;i++) for(let w=0;w<=cap;w++){
+    dp[i][w]=dp[i-1][w];
+    if(items[i-1].weight<=w) dp[i][w]=Math.max(dp[i][w],dp[i-1][w-items[i-1].weight]+items[i-1].value);
+  }
+  // Cache for rendering
+  KNAP_DP_MATRIX=dp;
+  KNAP_DP_ITEMS=items;
+  KNAP_DP_CAP=cap;
+  return dp[n][cap];
+}
+
+// Compute traceback cells (set of "i,w" strings)
+function knapTraceback(){
+  const items=KNAP_DP_ITEMS, dp=KNAP_DP_MATRIX, W=KNAP_DP_CAP;
+  const cells=new Set();
+  let w=W;
+  for(let i=items.length;i>=1;i--){
+    cells.add(`${i},${w}`);
+    if(dp[i][w]!==dp[i-1][w]){
+      w-=items[i-1].weight;
+    }
+  }
+  cells.add(`0,${w}`);
+  return cells;
+}
+
+function buildDPTableHTML(){
+  const dp=KNAP_DP_MATRIX, items=KNAP_DP_ITEMS, W=KNAP_DP_CAP;
+  const n=items.length;
+  if(!dp||!dp.length) return;
+  const tbl=document.getElementById('knap-dp-table');
+  // Header
+  let html='<thead><tr><th>Item \ W</th>';
+  for(let w=0;w<=W;w++) html+=`<th>${w}</th>`;
+  html+='</tr></thead><tbody>';
+  // Rows
+  for(let i=0;i<=n;i++){
+    const label=i===0?'— (base)':items[i-1].name+`<br><span style="font-weight:400;color:var(--muted);font-size:.62rem">w=${items[i-1].weight} v=${items[i-1].value}</span>`;
+    html+=`<tr id="dp-row-${i}"><td>${label}</td>`;
+    for(let w=0;w<=W;w++){
+      html+=`<td id="dp-cell-${i}-${w}">${dp[i][w]===0?'<span class="dp-zero">0</span>':dp[i][w]}</td>`;
+    }
+    html+='</tr>';
+  }
+  html+='</tbody>';
+  tbl.innerHTML=html;
+}
+
+function renderDPTable(activeRow, activeCol, showTraceback){
+  const dp=KNAP_DP_MATRIX, items=KNAP_DP_ITEMS, W=KNAP_DP_CAP;
+  if(!dp||!dp.length) return;
+  const n=items.length;
+
+  // Clear all highlights
+  document.querySelectorAll('#knap-dp-table td').forEach(td=>{
+    td.classList.remove('dp-active','dp-traceback','dp-changed','dp-zero');
+    // restore zero styling inside
+    const val=td.textContent.trim();
+    if(val==='0') td.innerHTML='<span class="dp-zero">0</span>';
+  });
+  document.querySelectorAll('#knap-dp-table tr').forEach(tr=>tr.classList.remove('dp-row-active'));
+
+  if(showTraceback){
+    const tb=knapTraceback();
+    tb.forEach(key=>{
+      const [ri,wi]=key.split(',').map(Number);
+      const cell=document.getElementById(`dp-cell-${ri}-${wi}`);
+      if(cell){cell.classList.add('dp-traceback');cell.innerHTML=dp[ri][wi];}
+    });
+    // Explain
+    document.getElementById('knap-dp-explain').innerHTML=
+      `<b style="color:var(--accent3)">Traceback complete.</b> Green cells show the optimal selection path. `+
+      `dp[${n}][${W}] = <b style="color:var(--accent3)">${dp[n][W]}</b> is the optimal value.`;
+    return;
+  }
+
+  if(activeRow===undefined||activeRow===null) return;
+
+  // Highlight changed cells vs prev row
+  for(let w=0;w<=W;w++){
+    if(activeRow>0 && dp[activeRow][w]!==dp[activeRow-1][w]){
+      const cell=document.getElementById(`dp-cell-${activeRow}-${w}`);
+      if(cell) cell.classList.add('dp-changed');
+    }
+  }
+
+  // Highlight active cell
+  if(activeCol!==null&&activeCol!==undefined){
+    const ac=document.getElementById(`dp-cell-${activeRow}-${activeCol}`);
+    if(ac){ac.classList.remove('dp-changed');ac.classList.add('dp-active');ac.innerHTML=dp[activeRow][activeCol];}
+  }
+
+  // Highlight row header
+  const row=document.getElementById(`dp-row-${activeRow}`);
+  if(row) row.classList.add('dp-row-active');
+
+  // Scroll active cell into view
+  const target=activeCol!==null&&activeCol!==undefined
+    ? document.getElementById(`dp-cell-${activeRow}-${activeCol}`)
+    : document.getElementById(`dp-row-${activeRow}`);
+  if(target) target.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+
+  // Explain
+  const item=activeRow>0?items[activeRow-1]:null;
+  let msg='';
+  if(activeRow===0){
+    msg='<b style="color:var(--accent2)">Base case:</b> dp[0][w] = 0 for all w — no items considered yet.';
+  } else if(item){
+    const prev=dp[activeRow-1][activeCol];
+    const canTake=item.weight<=activeCol;
+    const withItem=canTake?dp[activeRow-1][activeCol-item.weight]+item.value:-Infinity;
+    if(activeCol!==null&&activeCol!==undefined){
+      msg=`<b style="color:var(--accent1)">dp[${activeRow}][${activeCol}]</b> — `
+        +`Item: <b>${item.name}</b> (w=${item.weight}, v=${item.value}). `
+        +(canTake
+          ?`Can fit → max(dp[${activeRow-1}][${activeCol}]=${prev}, dp[${activeRow-1}][${activeCol-item.weight}]+${item.value}=${withItem}) = <b>${dp[activeRow][activeCol]}</b>`
+          :`Cannot fit (${item.weight} > ${activeCol}) → inherit dp[${activeRow-1}][${activeCol}] = <b>${prev}</b>`);
+    } else {
+      msg=`Filling row <b>${activeRow}</b> for item <b>${item.name}</b> (weight=${item.weight}, value=${item.value}).`;
+    }
+  }
+  document.getElementById('knap-dp-explain').innerHTML=msg;
+}
+
+function knapBuild(){
+  knapSorted=KNAP_ITEMS.map((it,i)=>({...it,origIdx:i,ratio:it.value/it.weight}));
+  knapSorted.sort((a,b)=>b.ratio-a.ratio);
+  KNAP_OPT=knapDP(KNAP_ITEMS,KNAP_CAP);
+
+  const steps=[]; let usedW=0,usedV=0; const included=[],skipped=[];
+  steps.push({
+    included:[],skipped:[],usedW:0,usedV:0,currentIdx:-1,
+    msg:`Sort by <b>V/W ratio</b> ↓. Capacity = <b>${KNAP_CAP}</b>`,
+    explain:`Items are sorted by value-to-weight ratio (highest first). This greedy strategy picks the most efficient items. DP optimal = <b>${KNAP_OPT}</b>.`
+  });
+  knapSorted.forEach((item,i)=>{
+    if(usedW+item.weight<=KNAP_CAP){
+      usedW+=item.weight; usedV+=item.value; included.push(item);
+      steps.push({
+        included:[...included],skipped:[...skipped],usedW,usedV,currentIdx:i,
+        msg:`✅ Take <b>${item.name}</b> (W:${item.weight}, V:${item.value}, r:${item.ratio.toFixed(2)})`,
+        explain:`<b>${item.name}</b> has ratio <b>${item.ratio.toFixed(2)}</b>. Adding uses ${item.weight} kg → ${usedW}/${KNAP_CAP} kg total. Running value: <b>${usedV}</b>.`
+      });
+    } else {
+      skipped.push(item);
+      steps.push({
+        included:[...included],skipped:[...skipped],usedW,usedV,currentIdx:i,
+        msg:`❌ Skip <b>${item.name}</b> (W:${item.weight}, only ${KNAP_CAP-usedW} kg left)`,
+        explain:`<b>${item.name}</b> weighs ${item.weight} kg but only ${KNAP_CAP-usedW} kg remaining. Skip.`
+      });
+    }
+  });
+  steps.push({
+    included:[...included],skipped:[...skipped],usedW,usedV,currentIdx:-1,
+    msg:`🏁 Greedy value = <b>${usedV}</b>, DP optimal = <b>${KNAP_OPT}</b>`,
+    explain:`Greedy finished with total value <b>${usedV}</b>. DP optimal is <b>${KNAP_OPT}</b>. Ratio = <b>${KNAP_OPT>0?(usedV/KNAP_OPT).toFixed(2):1}x</b>.`
+  });
+  return{steps,totalVal:usedV};
+}
+
+function knapInit(){
+  clearInterval(knapTimer); knapTimer=null;
+  const{steps,totalVal}=knapBuild();
+  knapState={steps,totalVal,cur:0,autoRunning:false};
+  buildKnapItemTable(); buildKnapStepList();
+  buildDPTableHTML();   // build the full DP table DOM
+  knapRenderStep(0);
+  document.getElementById('knap-cap-disp').textContent=KNAP_CAP;
+}
+
+function buildKnapItemTable(){
+  const tb=document.querySelector('#knap-item-table tbody'); tb.innerHTML='';
+  knapSorted.forEach((item,i)=>{
+    const tr=document.createElement('tr'); tr.id=`knap-row-${i}`;
+    tr.innerHTML=`<td><b>${item.name}</b></td><td>${item.weight}</td><td>${item.value}</td>
+    <td><span class="pill" style="background:rgba(251,146,60,.15);color:var(--accent4)">${item.ratio.toFixed(2)}</span></td>
+    <td id="knap-st-${i}"><span class="pill" style="background:rgba(100,116,139,.2);color:var(--muted)">pending</span></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function buildKnapStepList(){
+  const el=document.getElementById('knap-steps'); el.innerHTML='';
+  knapState.steps.forEach((s,i)=>{
+    const d=document.createElement('div'); d.className='step-item pending'; d.id=`knap-step-${i}`;
+    d.innerHTML=`<div class="step-num pending">${i+1}</div><div class="step-text">${s.msg}</div>`;
+    el.appendChild(d);
+  });
+}
+
+// Map greedy step index → DP row being worked on
+// Step 0 = sort/init → show row 0 (base case)
+// Steps 1..n = item i → show row i
+// Final step → traceback
+function knapStepToDPRow(idx){
+  const n=KNAP_DP_ITEMS.length;
+  const total=knapState.steps.length;
+  if(idx===0) return{row:0,col:null,traceback:false};
+  if(idx===total-1) return{row:n,col:KNAP_DP_CAP,traceback:true};
+  // idx 1..n maps to items 1..n
+  const row=Math.min(idx,n);
+  return{row,col:KNAP_DP_CAP,traceback:false};
+}
+
+function knapRenderStep(idx){
+  const s=knapState.steps[idx];
+  document.getElementById('knap-used-disp').textContent=s.usedW;
+  document.getElementById('knap-val-disp').textContent=s.usedV;
+  document.getElementById('knap-explain').innerHTML=s.explain||s.msg;
+
+  const vis=document.getElementById('knap-visual'); vis.innerHTML='';
+  const capPct=KNAP_CAP>0?Math.min(100,s.usedW/KNAP_CAP*100):0;
+  const capDiv=document.createElement('div'); capDiv.style.cssText='width:100%;';
+  capDiv.innerHTML=`<div style="font-size:.72rem;color:var(--muted);margin-bottom:.3rem">${s.usedW} / ${KNAP_CAP} kg used</div>
+  <div style="background:#1a2233;border-radius:6px;height:14px;overflow:hidden;border:1px solid #2a3a55">
+    <div style="height:100%;width:${capPct}%;background:${capPct>85?'var(--accent5)':capPct>60?'var(--accent4)':'var(--accent3)'};border-radius:6px;transition:width .5s ease"></div>
+  </div>`;
+  vis.appendChild(capDiv);
+
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;gap:.45rem;align-items:flex-end;flex-wrap:wrap;margin-top:.8rem;';
+  knapSorted.forEach((item,i)=>{
+    const inc=s.included.some(x=>x.name===item.name);
+    const skip=s.skipped.some(x=>x.name===item.name);
+    const cur=s.currentIdx===i;
+    const h=Math.max(34,Math.min(96,item.value*8));
+    const bg=inc?ICOLORS[i%ICOLORS.length]:cur?'#fb923c':'#2a3a55';
+    const blk=document.createElement('div'); blk.className='item-block'; blk.style.opacity=skip?.28:1;
+    blk.innerHTML=`<div class="item-rect" style="height:${h}px;background:${bg};border:${cur?'2px solid #00e5ff':'2px solid transparent'};box-shadow:${cur?'0 0 12px rgba(0,229,255,.4)':'none'}">
+      <span style="color:${inc?'#000':'#e2e8f0'}">${item.value}v</span>
+    </div>
+    <div class="item-label" style="color:${inc?ICOLORS[i%ICOLORS.length]:cur?'var(--accent4)':'var(--muted)'}">
+      ${item.name}<br><span style="font-size:.58rem">${item.weight}kg</span>
+    </div>`;
+    wrap.appendChild(blk);
+    const st=document.getElementById(`knap-st-${i}`);
+    if(st) st.innerHTML=inc
+      ?`<span class="pill" style="background:rgba(52,211,153,.2);color:var(--accent3)">✅ taken</span>`
+      :skip?`<span class="pill" style="background:rgba(248,113,113,.2);color:var(--accent5)">❌ skip</span>`
+           :`<span class="pill" style="background:rgba(100,116,139,.2);color:var(--muted)">pending</span>`;
+  });
+  vis.appendChild(wrap);
+
+  updateStepList('knap-step-',idx);
+  document.getElementById('knap-prev').disabled=(idx===0);
+  document.getElementById('knap-next').disabled=(idx===knapState.steps.length-1);
+
+  // DP table highlight
+  const dpInfo=knapStepToDPRow(idx);
+  renderDPTable(dpInfo.row, dpInfo.col, dpInfo.traceback);
+
+  if(idx===knapState.steps.length-1){
+    const approx=knapState.totalVal, opt=KNAP_OPT;
+    document.getElementById('knap-approx-val').textContent=approx;
+    document.getElementById('knap-opt-val').textContent=opt;
+    document.getElementById('knap-ratio').textContent=opt>0?(approx/opt).toFixed(2)+'x':'—';
+    document.getElementById('knap-result').classList.remove('hidden');
+    setTimeout(()=>{document.getElementById('knap-ratio-bar').style.width=pct(approx,opt)+'%';},120);
+  } else {
+    document.getElementById('knap-result').classList.add('hidden');
+  }
+}
+
+function knapNext(){ if(knapState.cur<knapState.steps.length-1){knapState.cur++;knapRenderStep(knapState.cur);} }
+function knapPrev(){ if(knapState.cur>0){knapState.cur--;knapRenderStep(knapState.cur);} }
+function knapReset(){
+  clearInterval(knapTimer); knapTimer=null;
+  document.getElementById('knap-auto').textContent='▶ Auto';
+  knapState.autoRunning=false; knapState.cur=0; knapRenderStep(0);
+}
+function knapAuto(){
+  if(knapState.autoRunning){
+    clearInterval(knapTimer); knapTimer=null;
+    knapState.autoRunning=false; document.getElementById('knap-auto').textContent='▶ Auto'; return;
+  }
+  knapState.autoRunning=true; document.getElementById('knap-auto').textContent='⏸ Pause';
+  const run=()=>{
+    if(knapState.cur>=knapState.steps.length-1){
+      clearInterval(knapTimer); knapTimer=null; knapState.autoRunning=false;
+      document.getElementById('knap-auto').textContent='▶ Auto'; return;
+    }
+    knapState.cur++; knapRenderStep(knapState.cur);
+    clearInterval(knapTimer);
+    knapTimer=setInterval(run,+document.getElementById('knap-speed').value);
+  };
+  knapTimer=setInterval(run,+document.getElementById('knap-speed').value);
+}
+
+// ═══════════════════════════════════════════════════════
+// VERTEX COVER — 2-APPROXIMATION
+// ═══════════════════════════════════════════════════════
+let VC_NODES=[
+  {name:'1',x:240,y:40},{name:'2',x:400,y:100},{name:'3',x:420,y:220},
+  {name:'4',x:280,y:260},{name:'5',x:100,y:220},{name:'6',x:80,y:100},{name:'7',x:240,y:140}
+];
+let VC_EDGES=[
+  [0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,6],[6,2],[6,3]
+];
+const VC_DEF_NODES=VC_NODES.map(n=>({...n}));
+const VC_DEF_EDGES=VC_EDGES.map(e=>[...e]);
+
+let vcState={}, vcTimer=null;
+
+function vcResetDefault(){
+  VC_NODES=VC_DEF_NODES.map(n=>({...n}));
+  VC_EDGES=VC_DEF_EDGES.map(e=>[...e]);
+  document.getElementById('vc-n').value=7;
+  document.getElementById('vc-input').value=VC_DEF_EDGES.map(([u,v])=>`${u} ${v}`).join('\n');
+  clearErr('vc-err'); vcInit();
+}
+
+function loadVCInput(){
+  clearErr('vc-err');
+  const n=parseInt(document.getElementById('vc-n').value);
+  const lines=document.getElementById('vc-input').value.trim().split('\n').filter(l=>l.trim());
+  if(isNaN(n)||n<2){showErr('vc-err','Need at least 2 nodes.');return;}
+  if(!lines.length){showErr('vc-err','Enter at least one edge.');return;}
+  const edges=[];
+  for(let i=0;i<lines.length;i++){
+    const p=lines[i].trim().split(/\s+/).map(Number);
+    if(p.length<2||p.some(isNaN)){showErr('vc-err',`Line ${i+1}: invalid.`);return;}
+    const[u,v]=p;
+    if(u<0||u>=n||v<0||v>=n){showErr('vc-err',`Line ${i+1}: index out of range (0–${n-1}).`);return;}
+    if(u===v){showErr('vc-err',`Line ${i+1}: self-loop not allowed.`);return;}
+    edges.push([u,v]);
+  }
+  VC_EDGES=edges; VC_NODES=vcCircleLayout(n); vcInit();
+}
+
+function vcRandom(){
+  clearErr('vc-err');
+  const n=rnd(4,9); const edgeSet=new Set(); const edges=[];
+  for(let i=1;i<n;i++){const j=rnd(0,i-1);edges.push([j,i]);edgeSet.add(`${j}-${i}`);}
+  const extra=rnd(2,Math.min(5,n));
+  for(let k=0;k<extra*4&&edges.length<n+extra;k++){
+    const u=rnd(0,n-1),v=rnd(0,n-1);
+    if(u!==v&&!edgeSet.has(`${u}-${v}`)&&!edgeSet.has(`${v}-${u}`)){
+      edges.push([u,v]); edgeSet.add(`${u}-${v}`);
+    }
+  }
+  VC_EDGES=edges; VC_NODES=vcCircleLayout(n);
+  document.getElementById('vc-n').value=n;
+  document.getElementById('vc-input').value=edges.map(([u,v])=>`${u} ${v}`).join('\n');
+  vcInit();
+}
+
+function vcCircleLayout(n){
+  const cx=240,cy=140,r=105; const nodes=[];
+  for(let i=0;i<n;i++){
+    const a=(2*Math.PI*i/n)-Math.PI/2;
+    nodes.push({name:String(i+1),x:Math.round(cx+r*Math.cos(a)),y:Math.round(cy+r*Math.sin(a))});
+  }
+  return nodes;
+}
+
+function vcMaxMatching(){
+  const matched=new Set(); let sz=0;
+  for(const[u,v]of VC_EDGES){if(!matched.has(u)&&!matched.has(v)){matched.add(u);matched.add(v);sz++;}}
+  return sz;
+}
+
+function vcBuild(){
+  const steps=[]; const cover=new Set(); const covered=new Set();
+  steps.push({
+    cover:new Set(),covered:new Set(),selectedEdge:null,
+    msg:`Start: <b>${VC_EDGES.length}</b> edges, cover set empty.`,
+    explain:`The 2-approximation repeatedly picks any uncovered edge and adds <b>both endpoints</b> to the cover, then marks all their incident edges covered.`
+  });
+  for(const[u,v]of VC_EDGES){
+    const key=`${u}-${v}`, rkey=`${v}-${u}`;
+    if(covered.has(key)||covered.has(rkey)) continue;
+    // Add both endpoints
+    cover.add(u); cover.add(v);
+    // Mark all edges incident to u or v
+    for(const[a,b]of VC_EDGES){
+      if(a===u||b===u||a===v||b===v){covered.add(`${a}-${b}`);covered.add(`${b}-${a}`);}
+    }
+    steps.push({
+      cover:new Set(cover),covered:new Set(covered),selectedEdge:[u,v],
+      msg:`Pick edge (<b>${VC_NODES[u].name}</b>–<b>${VC_NODES[v].name}</b>) → cover {${[...cover].map(i=>VC_NODES[i].name).join(',')}}`,
+      explain:`Edge (<b>${VC_NODES[u].name}</b>–<b>${VC_NODES[v].name}</b>) is uncovered. Add both <b>${VC_NODES[u].name}</b> and <b>${VC_NODES[v].name}</b> to the cover. All their incident edges are now covered.`
+    });
+    if(VC_EDGES.every(([a,b])=>covered.has(`${a}-${b}`)||covered.has(`${b}-${a}`))) break;
+  }
+  steps.push({
+    cover:new Set(cover),covered:new Set(covered),selectedEdge:null,
+    msg:`🏁 Cover = {${[...cover].map(i=>VC_NODES[i].name).join(', ')}} (size ${cover.size})`,
+    explain:`All ${VC_EDGES.length} edges covered. Vertex cover = <b>${cover.size}</b> nodes: {${[...cover].map(i=>VC_NODES[i].name).join(', ')}}. Max-matching lower bound = <b>${vcMaxMatching()}</b>, confirming ratio ≤ 2.`
+  });
+  return{steps,coverSize:cover.size};
+}
+
+function vcInit(){
+  clearInterval(vcTimer); vcTimer=null;
+  const{steps,coverSize}=vcBuild();
+  vcState={steps,coverSize,cur:0,autoRunning:false};
+  buildVcEdgeTable(); buildVcStepList(); vcRenderStep(0);
+}
+
+function buildVcEdgeTable(){
+  const tb=document.querySelector('#vc-edge-table tbody'); tb.innerHTML='';
+  VC_EDGES.forEach(([u,v],i)=>{
+    const tr=document.createElement('tr'); tr.id=`vc-erow-${i}`;
+    tr.innerHTML=`<td><b>e${i+1}</b></td><td>${VC_NODES[u].name}</td><td>${VC_NODES[v].name}</td>
+    <td id="vc-est-${i}"><span class="pill" style="background:rgba(100,116,139,.2);color:var(--muted)">uncovered</span></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function buildVcStepList(){
+  const el=document.getElementById('vc-steps'); el.innerHTML='';
+  vcState.steps.forEach((s,i)=>{
+    const d=document.createElement('div'); d.className='step-item pending'; d.id=`vc-step-${i}`;
+    d.innerHTML=`<div class="step-num pending">${i+1}</div><div class="step-text">${s.msg}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function vcRenderStep(idx){
+  const s=vcState.steps[idx];
+  const svg=document.getElementById('vc-svg');
+  svg.innerHTML=`<defs>
+    <filter id="gV"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gV2"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  VC_EDGES.forEach(([u,v],i)=>{
+    const a=VC_NODES[u],b=VC_NODES[v];
+    const cov=s.covered.has(`${u}-${v}`)||s.covered.has(`${v}-${u}`);
+    const sel=s.selectedEdge&&((s.selectedEdge[0]===u&&s.selectedEdge[1]===v)||(s.selectedEdge[0]===v&&s.selectedEdge[1]===u));
+    const ln=svgEl('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,
+      stroke:sel?'#fb923c':cov?'#2a3a55':'#4a6a95','stroke-width':sel?4:cov?1:2});
+    if(sel) ln.setAttribute('filter','url(#gV)');
+    svg.appendChild(ln);
+    svg.appendChild(svgEl('text',{x:(a.x+b.x)/2+4,y:(a.y+b.y)/2-5,
+      fill:sel?'#fb923c':cov?'#2a3a55':'#64748b','font-size':9,'text-anchor':'middle',
+      'font-family':'JetBrains Mono,monospace'},`e${i+1}`));
+    const st=document.getElementById(`vc-est-${i}`);
+    if(st) st.innerHTML=cov
+      ?`<span class="pill" style="background:rgba(52,211,153,.2);color:var(--accent3)">covered</span>`
+      :`<span class="pill" style="background:rgba(100,116,139,.2);color:var(--muted)">uncovered</span>`;
+  });
+
+  VC_NODES.forEach((n,i)=>{
+    const inc=s.cover.has(i);
+    const sel=s.selectedEdge&&(s.selectedEdge[0]===i||s.selectedEdge[1]===i);
+    const r=sel?18:inc?15:13;
+    const fill=sel?'#fb923c':inc?'#a78bfa':'#1a2233';
+    const stroke=sel?'#fb923c':inc?'#a78bfa':'#2a3a55';
+    const ci=svgEl('circle',{cx:n.x,cy:n.y,r,fill,stroke,'stroke-width':2});
+    if(sel) ci.setAttribute('filter','url(#gV2)');
+    else if(inc) ci.setAttribute('filter','url(#gV)');
+    svg.appendChild(ci);
+    svg.appendChild(svgEl('text',{x:n.x,y:n.y+4,fill:(sel||inc)?'#000':'#e2e8f0',
+      'font-size':11,'text-anchor':'middle','font-weight':700,'font-family':'Outfit,sans-serif'},n.name));
+  });
+
+  updateStepList('vc-step-',idx);
+  document.getElementById('vc-explain').innerHTML=s.explain||s.msg;
+  document.getElementById('vc-prev').disabled=(idx===0);
+  document.getElementById('vc-next').disabled=(idx===vcState.steps.length-1);
+
+  if(idx===vcState.steps.length-1){
+    const approx=vcState.coverSize, lb=vcMaxMatching();
+    document.getElementById('vc-approx-size').textContent=approx;
+    document.getElementById('vc-opt-size').textContent=lb;
+    document.getElementById('vc-ratio').textContent=(lb>0?(approx/lb).toFixed(2):'—')+'x';
+    document.getElementById('vc-cover-list').innerHTML=`Cover vertices: <b style="color:var(--accent2)">{${[...s.cover].map(i=>VC_NODES[i].name).join(', ')}}</b>`;
+    document.getElementById('vc-result').classList.remove('hidden');
+    setTimeout(()=>{document.getElementById('vc-ratio-bar').style.width=pct(lb,approx)+'%';},120);
+  } else {
+    document.getElementById('vc-result').classList.add('hidden');
+  }
+}
+
+function vcNext(){ if(vcState.cur<vcState.steps.length-1){vcState.cur++;vcRenderStep(vcState.cur);} }
+function vcPrev(){ if(vcState.cur>0){vcState.cur--;vcRenderStep(vcState.cur);} }
+function vcReset(){
+  clearInterval(vcTimer); vcTimer=null;
+  document.getElementById('vc-auto').textContent='▶ Auto';
+  vcState.autoRunning=false; vcState.cur=0; vcRenderStep(0);
+}
+function vcAuto(){
+  if(vcState.autoRunning){
+    clearInterval(vcTimer); vcTimer=null;
+    vcState.autoRunning=false; document.getElementById('vc-auto').textContent='▶ Auto'; return;
+  }
+  vcState.autoRunning=true; document.getElementById('vc-auto').textContent='⏸ Pause';
+  const run=()=>{
+    if(vcState.cur>=vcState.steps.length-1){
+      clearInterval(vcTimer); vcTimer=null; vcState.autoRunning=false;
+      document.getElementById('vc-auto').textContent='▶ Auto'; return;
+    }
+    vcState.cur++; vcRenderStep(vcState.cur);
+    clearInterval(vcTimer);
+    vcTimer=setInterval(run,+document.getElementById('vc-speed').value);
+  };
+  vcTimer=setInterval(run,+document.getElementById('vc-speed').value);
+}
+
+// ═══════════════════════════════════════════════════════
+// SHARED HELPERS
+// ═══════════════════════════════════════════════════════
+function svgEl(tag, attrs, text){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const[k,v]of Object.entries(attrs)) el.setAttribute(k,v);
+  if(text!==undefined) el.textContent=text;
+  return el;
+}
+
+function updateStepList(prefix,idx){
+  document.querySelectorAll(`.step-item[id^="${prefix}"]`).forEach((el,i)=>{
+    const n=el.querySelector('.step-num');
+    if(i<idx){el.className='step-item done';n.className='step-num done';}
+    else if(i===idx){el.className='step-item current';n.className='step-num current';el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+    else{el.className='step-item pending';n.className='step-num pending';}
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+tspInit(); knapInit(); vcInit();
+</script>
+</body>
+</html>
